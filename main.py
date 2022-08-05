@@ -8,13 +8,22 @@ durations = []
 towers = []
 barracks = []
 barracks_both = []
+roshans = []
+roshans_both = []
 matches = len(response.json())
+matches_without_chat = 0
 
 print("Number of matches: ", matches)
 
 for j in range(len(response.json())):
-    curr_duration = response.json()[j]["duration"]
-    durations.append(curr_duration / 60)
+
+    curr_duration = response.json()[j]["duration"] / 60
+
+    if curr_duration < 15:
+        matches -= 1
+        continue
+
+    durations.append(curr_duration)
 
     tower_status_radiant = '{0:011b}'.format(response.json()[j]["tower_status_radiant"])
     tower_status_dire = '{0:011b}'.format(response.json()[j]["tower_status_dire"])
@@ -48,15 +57,20 @@ for j in range(len(response.json())):
     else:
         barracks_both.append(0)
 
-# response = requests.get("https://api.opendota.com/api/leagues/14391/matches")
+    roshan_dcount = 0
+    if response.json()[j]["chat"] == None:
+        matches_without_chat += 1
+    else: 
+        for i in response.json()[j]["chat"]:
+            if i["type"] == "CHAT_MESSAGE_ROSHAN_KILL":
+                roshan_dcount += 1
+                print("WE made it")
+        roshans.append(roshan_dcount)
 
-# for i in range(len(response.json())):
-#     curr_duration = response.json()[i]["duration"]
-#     durations.append(curr_duration / 60)
+print("Number of matches without chat: ", matches_without_chat)
 
 
-
-fig, ((ax0, ax1, axnull), (ax2, ax3, ax4), (ax5, ax6, ax7)) = plt.subplots(nrows=3, ncols=3)
+fig, ((ax0, ax1, axnull), (ax2, ax3, ax4), (ax5, ax6, ax7), (ax8, ax9, ax10)) = plt.subplots(nrows=4, ncols=3)
 
 counts, edges, bars = ax0.hist(durations, bins=[0,20,30,40,50,60,120])
 ax0.bar_label(bars, labels=[round(x / matches * 100, 2) for x in counts])
@@ -89,6 +103,15 @@ ax7.set_title('Barracks 5.5')
 counts, edges, bars = ax1.hist(barracks_both, bins=[0, 1, 2])
 ax1.bar_label(bars, labels=[round(x / matches * 100, 2) for x in counts])
 ax1.set_title('Both Barracks')
+
+counts, edges, bars = ax8.hist(roshans, bins=[0, 2.5, 7])
+ax8.bar_label(bars, labels=[round(x / (matches - matches_without_chat) * 100, 2) for x in counts])
+ax8.set_title('Roshans 2.5')
+
+counts, edges, bars = ax9.hist(roshans, bins=[0, 1, 2])
+ax9.bar_label(bars, labels=[round(x / (matches - matches_without_chat) * 100, 2) for x in counts])
+ax9.set_title('Roshans Both')
+
 
 plt.show()
 
