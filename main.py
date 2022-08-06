@@ -1,8 +1,22 @@
 from cProfile import label
 import requests
 import matplotlib.pyplot as plt
+from pybettor import implied_odds
 
-response = requests.get("https://api.opendota.com/api/leagues/14417/matches")
+def return_odds(values, matches, american=False):
+    for k in range(len(values)):
+        if values[k] == 0.0:
+            values[k] = 0.01
+        if values[k] == 1.0:
+            values[k] = 0.99 
+
+    if american:
+        return [implied_odds(x / matches, category="us") for x in values]
+    return [round(x / matches * 100, 2) for x in values]
+    
+# Previous Tournament
+
+response = requests.get("https://api.opendota.com/api/leagues/14173/matches")
 
 durations = []
 towers = []
@@ -57,61 +71,76 @@ for j in range(len(response.json())):
     else:
         barracks_both.append(0)
 
+    roshan_team_2, roshan_team_3 = False, False
     roshan_dcount = 0
-    if response.json()[j]["chat"] == None:
+    if response.json()[j]["objectives"] == None:
         matches_without_chat += 1
     else: 
-        for i in response.json()[j]["chat"]:
+        for i in response.json()[j]["objectives"]:
             if i["type"] == "CHAT_MESSAGE_ROSHAN_KILL":
                 roshan_dcount += 1
-                print("WE made it")
+                if i["team"] == 2:
+                    roshan_team_2 = True
+                if i["team"] == 3:
+                    roshan_team_3 = True
         roshans.append(roshan_dcount)
+    if roshan_team_2 and roshan_team_3:
+        roshans_both.append(1)
+    else:
+        roshans_both.append(0)
+
 
 print("Number of matches without chat: ", matches_without_chat)
+matches_adj = matches - matches_without_chat
+american = True
 
-
-fig, ((ax0, ax1, axnull), (ax2, ax3, ax4), (ax5, ax6, ax7), (ax8, ax9, ax10)) = plt.subplots(nrows=4, ncols=3)
+fig, ((ax0, ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8, ax9), (ax10, ax11, ax12, ax13, ax4)) = plt.subplots(nrows=3, ncols=5)
 
 counts, edges, bars = ax0.hist(durations, bins=[0,20,30,40,50,60,120])
-ax0.bar_label(bars, labels=[round(x / matches * 100, 2) for x in counts])
+ax0.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
 ax0.set_title('Durations')
 
-counts, edges, bars = axnull.hist(towers, bins=[0, 11.5, 20])
-axnull.bar_label(bars, labels=[round(x / matches * 100, 2) for x in counts])
-axnull.set_title('Towers 11.5')
-counts, edges, bars = ax2.hist(towers, bins=[0, 12.5, 20])
-ax2.bar_label(bars, labels=[round(x / matches * 100, 2) for x in counts])
-ax2.set_title('Towers 12.5')
-counts, edges, bars = ax3.hist(towers, bins=[0, 13.5, 20])
-ax3.bar_label(bars, labels=[round(x / matches * 100, 2) for x in counts])
-ax3.set_title('Towers 13.5')
+counts, edges, bars = ax5.hist(towers, bins=[0, 9.5, 20])
+ax5.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax5.set_title('Towers 9.5')
+counts, edges, bars = ax6.hist(towers, bins=[0, 10.5, 20])
+ax6.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax6.set_title('Towers 10.5')
+counts, edges, bars = ax7.hist(towers, bins=[0, 11.5, 20])
+ax7.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax7.set_title('Towers 11.5')
+counts, edges, bars = ax8.hist(towers, bins=[0, 12.5, 20])
+ax8.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax8.set_title('Towers 12.5')
+counts, edges, bars = ax9.hist(towers, bins=[0, 13.5, 20])
+ax9.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax9.set_title('Towers 13.5')
 counts, edges, bars = ax4.hist(towers, bins=[0, 14.5, 20])
-ax4.bar_label(bars, labels=[round(x / matches * 100, 2) for x in counts])
+ax4.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
 ax4.set_title('Towers 14.5')
 
 
-counts, edges, bars = ax5.hist(barracks, bins=[0, 0.5, 14])
-ax5.bar_label(bars, labels=[round(x / matches * 100, 2) for x in counts])
-ax5.set_title('Barracks 1.5')
-counts, edges, bars = ax6.hist(barracks, bins=[0, 3.5, 14])
-ax6.bar_label(bars, labels=[round(x / matches * 100, 2) for x in counts])
-ax6.set_title('Barracks 3.5')
-counts, edges, bars = ax7.hist(barracks, bins=[0, 5.5, 14])
-ax7.bar_label(bars, labels=[round(x / matches * 100, 2) for x in counts])
-ax7.set_title('Barracks 5.5')
+counts, edges, bars = ax10.hist(barracks, bins=[0, 0.5, 14])
+ax10.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax10.set_title('Barracks 1.5')
+counts, edges, bars = ax11.hist(barracks, bins=[0, 3.5, 14])
+ax11.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax11.set_title('Barracks 3.5')
+counts, edges, bars = ax12.hist(barracks, bins=[0, 5.5, 14])
+ax12.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax12.set_title('Barracks 5.5')
 
 counts, edges, bars = ax1.hist(barracks_both, bins=[0, 1, 2])
-ax1.bar_label(bars, labels=[round(x / matches * 100, 2) for x in counts])
+ax1.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
 ax1.set_title('Both Barracks')
 
-counts, edges, bars = ax8.hist(roshans, bins=[0, 2.5, 7])
-ax8.bar_label(bars, labels=[round(x / (matches - matches_without_chat) * 100, 2) for x in counts])
-ax8.set_title('Roshans 2.5')
+counts, edges, bars = ax3.hist(roshans, bins=[0, 2.5, 7])
+ax3.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax3.set_title('Roshans 2.5')
 
-counts, edges, bars = ax9.hist(roshans, bins=[0, 1, 2])
-ax9.bar_label(bars, labels=[round(x / (matches - matches_without_chat) * 100, 2) for x in counts])
-ax9.set_title('Roshans Both')
-
+counts, edges, bars = ax2.hist(roshans_both, bins=[0, 1, 2])
+ax2.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax2.set_title('Roshans Both')
 
 plt.show()
 

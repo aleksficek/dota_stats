@@ -66,14 +66,14 @@ import statistics
 # Barracks std:  2.1614172893151227
 # Barracks both std:  0.24855632476172143
 
-durations_std = 9.023027243799053
-towers_std = 2.9446412006506035
-barracks_std = 2.1614172893151227
-barracks_both = 0.24855632476172143
+# durations_std = 9.023027243799053
+# towers_std = 2.9446412006506035
+# barracks_std = 2.1614172893151227
+# barracks_both = 0.24855632476172143
 
-# 95% confidence
-print("Duration Sample Size: ", (1.96 * durations_std / 2)**2)
-print("Towers Sample Size: ", (1.96 * towers_std / 0.4)**2)
-print("Barracks Sample Size: ", (1.96 * barracks_std / 0.1)**2)
-print("Barracks Both Sample Size: ", (1.96 * barracks_both / 0.05)**2)
+# # 95% confidence
+# print("Duration Sample Size: ", (1.96 * durations_std / 2)**2)
+# print("Towers Sample Size: ", (1.96 * towers_std / 0.4)**2)
+# print("Barracks Sample Size: ", (1.96 * barracks_std / 0.1)**2)
+# print("Barracks Both Sample Size: ", (1.96 * barracks_both / 0.05)**2)
 
