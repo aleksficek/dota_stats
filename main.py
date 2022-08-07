@@ -2,6 +2,7 @@ from cProfile import label
 import requests
 import matplotlib.pyplot as plt
 from pybettor import implied_odds
+import json
 
 def return_odds(values, matches, american=False):
     for k in range(len(values)):
@@ -20,16 +21,23 @@ def return_rolling_odds(values, matches, bins, target_index):
 
     for i in range(1, len(values)):
 
-        counts, edges, bars = plt.hist(durations[:i], bins=bins)
+        counts, edges, bars = plt.hist(values[:i], bins=bins)
         histogram_probs = return_odds(counts, i)
 
         total_histagram_probs.append(histogram_probs[target_index])
+    plt.clf()
 
-    return histogram_probs
+    return total_histagram_probs
    
 # Previous Tournament 14173 Current Tournament 14417
 
-response = requests.get("https://api.opendota.com/api/leagues/14417/matches")
+f = open('pgl.json')
+response_json = json.load(f)
+
+# response = requests.get("https://api.opendota.com/api/leagues/14417/matches")
+# response_json = response.json()
+# with open('pgl.json', 'w') as json_file:
+#     json.dump(response_json, json_file)
 
 durations = []
 towers = []
@@ -37,14 +45,14 @@ barracks = []
 barracks_both = []
 roshans = []
 roshans_both = []
-matches = len(response.json())
+matches = len(response_json)
 matches_without_chat = 0
 
 print("Number of matches: ", matches)
 
-for j in range(len(response.json())):
+for j in range(len(response_json)):
 
-    curr_duration = response.json()[j]["duration"] / 60
+    curr_duration = response_json[j]["duration"] / 60
 
     if curr_duration < 15:
         matches -= 1
@@ -52,10 +60,10 @@ for j in range(len(response.json())):
 
     durations.append(curr_duration)
 
-    tower_status_radiant = '{0:011b}'.format(response.json()[j]["tower_status_radiant"])
-    tower_status_dire = '{0:011b}'.format(response.json()[j]["tower_status_dire"])
-    barracks_status_radiant = '{0:06b}'.format(response.json()[j]["barracks_status_radiant"])
-    barracks_status_dire = '{0:06b}'.format(response.json()[j]["barracks_status_dire"])
+    tower_status_radiant = '{0:011b}'.format(response_json[j]["tower_status_radiant"])
+    tower_status_dire = '{0:011b}'.format(response_json[j]["tower_status_dire"])
+    barracks_status_radiant = '{0:06b}'.format(response_json[j]["barracks_status_radiant"])
+    barracks_status_dire = '{0:06b}'.format(response_json[j]["barracks_status_dire"])
 
     tower_dcount = 0
     for i in tower_status_radiant:
@@ -86,10 +94,10 @@ for j in range(len(response.json())):
 
     roshan_team_2, roshan_team_3 = False, False
     roshan_dcount = 0
-    if response.json()[j]["objectives"] == None:
+    if response_json[j]["objectives"] == None:
         matches_without_chat += 1
     else: 
-        for i in response.json()[j]["objectives"]:
+        for i in response_json[j]["objectives"]:
             if i["type"] == "CHAT_MESSAGE_ROSHAN_KILL":
                 roshan_dcount += 1
                 if i["team"] == 2:
@@ -160,7 +168,15 @@ ax2.set_title('Roshans Both')
 plt.figure()
 
 total_histogram_odds = return_rolling_odds(durations, matches, [0,20,30,40,50,60,120], 4)
+plt.plot(total_histogram_odds, color='black', ls='-', marker='.')
+# plt.set_title('50 Minute Duration')
 
-plt.plot(total_histogram_odds)
+plt.show()
+
+plt.figure()
+
+total_histogram_odds = return_rolling_odds(barracks, matches, [0, 5.5, 14], 0)
+plt.plot(total_histogram_odds, color='black', ls='-', marker='.')
+# plt.set_title('Barracks 5.5')
 
 plt.show()
