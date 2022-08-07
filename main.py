@@ -13,10 +13,23 @@ def return_odds(values, matches, american=False):
     if american:
         return [implied_odds(x / matches, category="us") for x in values]
     return [round(x / matches * 100, 2) for x in values]
-    
-# Previous Tournament
 
-response = requests.get("https://api.opendota.com/api/leagues/14173/matches")
+def return_rolling_odds(values, matches, bins, target_index):
+
+    total_histagram_probs = []
+
+    for i in range(1, len(values)):
+
+        counts, edges, bars = plt.hist(durations[:i], bins=bins)
+        histogram_probs = return_odds(counts, i)
+
+        total_histagram_probs.append(histogram_probs[target_index])
+
+    return histogram_probs
+   
+# Previous Tournament 14173 Current Tournament 14417
+
+response = requests.get("https://api.opendota.com/api/leagues/14417/matches")
 
 durations = []
 towers = []
@@ -97,41 +110,43 @@ american = True
 fig, ((ax0, ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8, ax9), (ax10, ax11, ax12, ax13, ax4)) = plt.subplots(nrows=3, ncols=5)
 
 counts, edges, bars = ax0.hist(durations, bins=[0,20,30,40,50,60,120])
-ax0.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax0.bar_label(bars, labels=return_odds(counts, matches, american=american))
 ax0.set_title('Durations')
 
 counts, edges, bars = ax5.hist(towers, bins=[0, 9.5, 20])
-ax5.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax5.bar_label(bars, labels=return_odds(counts, matches, american=american))
 ax5.set_title('Towers 9.5')
 counts, edges, bars = ax6.hist(towers, bins=[0, 10.5, 20])
-ax6.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax6.bar_label(bars, labels=return_odds(counts, matches, american=american))
 ax6.set_title('Towers 10.5')
 counts, edges, bars = ax7.hist(towers, bins=[0, 11.5, 20])
-ax7.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax7.bar_label(bars, labels=return_odds(counts, matches, american=american))
 ax7.set_title('Towers 11.5')
 counts, edges, bars = ax8.hist(towers, bins=[0, 12.5, 20])
-ax8.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax8.bar_label(bars, labels=return_odds(counts, matches, american=american))
 ax8.set_title('Towers 12.5')
 counts, edges, bars = ax9.hist(towers, bins=[0, 13.5, 20])
-ax9.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax9.bar_label(bars, labels=return_odds(counts, matches, american=american))
 ax9.set_title('Towers 13.5')
 counts, edges, bars = ax4.hist(towers, bins=[0, 14.5, 20])
-ax4.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax4.bar_label(bars, labels=return_odds(counts, matches, american=american))
 ax4.set_title('Towers 14.5')
 
-
 counts, edges, bars = ax10.hist(barracks, bins=[0, 0.5, 14])
-ax10.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax10.bar_label(bars, labels=return_odds(counts, matches, american=american))
 ax10.set_title('Barracks 1.5')
 counts, edges, bars = ax11.hist(barracks, bins=[0, 3.5, 14])
-ax11.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax11.bar_label(bars, labels=return_odds(counts, matches, american=american))
 ax11.set_title('Barracks 3.5')
 counts, edges, bars = ax12.hist(barracks, bins=[0, 5.5, 14])
-ax12.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax12.bar_label(bars, labels=return_odds(counts, matches, american=american))
 ax12.set_title('Barracks 5.5')
+counts, edges, bars = ax13.hist(barracks, bins=[0, 7.5, 14])
+ax13.bar_label(bars, labels=return_odds(counts, matches, american=american))
+ax13.set_title('Barracks 7.5')
 
 counts, edges, bars = ax1.hist(barracks_both, bins=[0, 1, 2])
-ax1.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
+ax1.bar_label(bars, labels=return_odds(counts, matches, american=american))
 ax1.set_title('Both Barracks')
 
 counts, edges, bars = ax3.hist(roshans, bins=[0, 2.5, 7])
@@ -142,6 +157,10 @@ counts, edges, bars = ax2.hist(roshans_both, bins=[0, 1, 2])
 ax2.bar_label(bars, labels=return_odds(counts, matches_adj, american=american))
 ax2.set_title('Roshans Both')
 
+plt.figure()
+
+total_histogram_odds = return_rolling_odds(durations, matches, [0,20,30,40,50,60,120], 4)
+
+plt.plot(total_histogram_odds)
+
 plt.show()
-
-
